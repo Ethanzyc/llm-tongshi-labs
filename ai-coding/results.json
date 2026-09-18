@@ -1,0 +1,370 @@
+{
+  "model": "deepseek-chat",
+  "time": "2026-09-18T17:56:48.555Z",
+  "cases": 7,
+  "scenarios": {
+    "A": [
+      {
+        "run": 1,
+        "file": "runs/A_1.mjs",
+        "code": "/**\n * 将 CSV 表格的一行文本按逗号拆分成数组。\n * 支持带双引号的字段（引号内的逗号不会被拆分），\n * 也支持字段内出现双引号（通过两个双引号转义）。\n * \n * @param {string} line - CSV 的一行文本。\n * @returns {string[]} 拆分后的字段数组。\n */\nfunction parseCSVLine(line) {\n  // 如果输入不是字符串，返回空数组\n  if (typeof line !== 'string') {\n    return [];\n  }\n\n  const result = [];\n  let current = '';\n  let inQuotes = false;\n\n  for (let i = 0; i < line.length; i++) {\n    const char = line[i];\n\n    if (inQuotes) {\n      // 在引号内部\n      if (char === '\"') {\n        // 检查下一个字符是否也是双引号（转义的双引号）\n        if (i + 1 < line.length && line[i + 1] === '\"') {\n          current += '\"'; // 添加一个双引号\n          i++; // 跳过下一个双引号\n        } else {\n          inQuotes = false; // 引号结束\n        }\n      } else {\n        current += char;\n      }\n    } else {\n      // 不在引号内部\n      if (char === '\"') {\n        inQuotes = true; // 引号开始\n      } else if (char === ',') {\n        // 遇到逗号，结束当前字段\n        result.push(current);\n        current = '';\n      } else {\n        current += char;\n      }\n    }\n  }\n\n  // 添加最后一个字段\n  result.push(current);\n\n  return result;\n}\n\n// 测试示例\nconsole.log(parseCSVLine('a,b,c')); // [\"a\", \"b\", \"c\"]\nconsole.log(parseCSVLine('a,\"b,c\",d')); // [\"a\", \"b,c\", \"d\"]\nconsole.log(parseCSVLine('\"a\"\"b\",c')); // ['a\"b', 'c']\nconsole.log(parseCSVLine('a,,c')); // [\"a\", \"\", \"c\"]\nconsole.log(parseCSVLine('')); // [\"\"]\n",
+        "mounted": false,
+        "reason": "未按契约导出 parseCsvLine(实际导出: 无)",
+        "results": [],
+        "passCount": 0
+      },
+      {
+        "run": 2,
+        "file": "runs/A_2.mjs",
+        "code": "function parseCSVLine(line) {\n  return line.split(',');\n}\n",
+        "mounted": false,
+        "reason": "未按契约导出 parseCsvLine(实际导出: 无)",
+        "results": [],
+        "passCount": 0
+      },
+      {
+        "run": 3,
+        "file": "runs/A_3.mjs",
+        "code": "function parseCSVLine(line) {\n  return line.split(',');\n}\n",
+        "mounted": false,
+        "reason": "未按契约导出 parseCsvLine(实际导出: 无)",
+        "results": [],
+        "passCount": 0
+      }
+    ],
+    "B": [
+      {
+        "run": 1,
+        "file": "runs/B_1.mjs",
+        "code": "export function parseCsvLine(line) {\n  const fields = [];\n  let current = '';\n  let inQuotes = false;\n  let i = 0;\n  const len = line.length;\n\n  while (i < len) {\n    const ch = line[i];\n\n    if (inQuotes) {\n      if (ch === '\"') {\n        if (i + 1 < len && line[i + 1] === '\"') {\n          current += '\"';\n          i += 2;\n        } else {\n          inQuotes = false;\n          i += 1;\n        }\n      } else {\n        current += ch;\n        i += 1;\n      }\n    } else {\n      if (ch === '\"') {\n        inQuotes = true;\n        i += 1;\n      } else if (ch === ',') {\n        fields.push(current);\n        current = '';\n        i += 1;\n      } else {\n        current += ch;\n        i += 1;\n      }\n    }\n  }\n\n  fields.push(current);\n  return fields;\n}\n",
+        "mounted": true,
+        "reason": "",
+        "results": [
+          {
+            "label": "基础三段",
+            "input": "a,b,c",
+            "expect": [
+              "a",
+              "b",
+              "c"
+            ],
+            "got": [
+              "a",
+              "b",
+              "c"
+            ],
+            "pass": true
+          },
+          {
+            "label": "引号内逗号",
+            "input": "\"a,b\",c",
+            "expect": [
+              "a,b",
+              "c"
+            ],
+            "got": [
+              "a,b",
+              "c"
+            ],
+            "pass": true
+          },
+          {
+            "label": "双写转义",
+            "input": "\"say \"\"hi\"\"\",x",
+            "expect": [
+              "say \"hi\"",
+              "x"
+            ],
+            "got": [
+              "say \"hi\"",
+              "x"
+            ],
+            "pass": true
+          },
+          {
+            "label": "空字段",
+            "input": "a,,b",
+            "expect": [
+              "a",
+              "",
+              "b"
+            ],
+            "got": [
+              "a",
+              "",
+              "b"
+            ],
+            "pass": true
+          },
+          {
+            "label": "单字段",
+            "input": "one",
+            "expect": [
+              "one"
+            ],
+            "got": [
+              "one"
+            ],
+            "pass": true
+          },
+          {
+            "label": "混合引号",
+            "input": "\"multi,tag\",ok,\"last\"",
+            "expect": [
+              "multi,tag",
+              "ok",
+              "last"
+            ],
+            "got": [
+              "multi,tag",
+              "ok",
+              "last"
+            ],
+            "pass": true
+          },
+          {
+            "label": "全空字段",
+            "input": ",,",
+            "expect": [
+              "",
+              "",
+              ""
+            ],
+            "got": [
+              "",
+              "",
+              ""
+            ],
+            "pass": true
+          }
+        ],
+        "passCount": 7
+      },
+      {
+        "run": 2,
+        "file": "runs/B_2.mjs",
+        "code": "export function parseCsvLine(line) {\n  const fields = [];\n  let current = '';\n  let inQuotes = false;\n  let i = 0;\n  const len = line.length;\n\n  while (i < len) {\n    const ch = line[i];\n    if (inQuotes) {\n      if (ch === '\"') {\n        if (i + 1 < len && line[i + 1] === '\"') {\n          current += '\"';\n          i += 2;\n        } else {\n          inQuotes = false;\n          i++;\n        }\n      } else {\n        current += ch;\n        i++;\n      }\n    } else {\n      if (ch === '\"') {\n        inQuotes = true;\n        i++;\n      } else if (ch === ',') {\n        fields.push(current);\n        current = '';\n        i++;\n      } else {\n        current += ch;\n        i++;\n      }\n    }\n  }\n\n  fields.push(current);\n  return fields;\n}\n",
+        "mounted": true,
+        "reason": "",
+        "results": [
+          {
+            "label": "基础三段",
+            "input": "a,b,c",
+            "expect": [
+              "a",
+              "b",
+              "c"
+            ],
+            "got": [
+              "a",
+              "b",
+              "c"
+            ],
+            "pass": true
+          },
+          {
+            "label": "引号内逗号",
+            "input": "\"a,b\",c",
+            "expect": [
+              "a,b",
+              "c"
+            ],
+            "got": [
+              "a,b",
+              "c"
+            ],
+            "pass": true
+          },
+          {
+            "label": "双写转义",
+            "input": "\"say \"\"hi\"\"\",x",
+            "expect": [
+              "say \"hi\"",
+              "x"
+            ],
+            "got": [
+              "say \"hi\"",
+              "x"
+            ],
+            "pass": true
+          },
+          {
+            "label": "空字段",
+            "input": "a,,b",
+            "expect": [
+              "a",
+              "",
+              "b"
+            ],
+            "got": [
+              "a",
+              "",
+              "b"
+            ],
+            "pass": true
+          },
+          {
+            "label": "单字段",
+            "input": "one",
+            "expect": [
+              "one"
+            ],
+            "got": [
+              "one"
+            ],
+            "pass": true
+          },
+          {
+            "label": "混合引号",
+            "input": "\"multi,tag\",ok,\"last\"",
+            "expect": [
+              "multi,tag",
+              "ok",
+              "last"
+            ],
+            "got": [
+              "multi,tag",
+              "ok",
+              "last"
+            ],
+            "pass": true
+          },
+          {
+            "label": "全空字段",
+            "input": ",,",
+            "expect": [
+              "",
+              "",
+              ""
+            ],
+            "got": [
+              "",
+              "",
+              ""
+            ],
+            "pass": true
+          }
+        ],
+        "passCount": 7
+      },
+      {
+        "run": 3,
+        "file": "runs/B_3.mjs",
+        "code": "export function parseCsvLine(line) {\n  const fields = [];\n  let field = '';\n  let inQuotes = false;\n  let i = 0;\n\n  while (i < line.length) {\n    const ch = line[i];\n\n    if (inQuotes) {\n      if (ch === '\"') {\n        if (i + 1 < line.length && line[i + 1] === '\"') {\n          field += '\"';\n          i += 2;\n        } else {\n          inQuotes = false;\n          i++;\n        }\n      } else {\n        field += ch;\n        i++;\n      }\n    } else {\n      if (ch === '\"') {\n        inQuotes = true;\n        i++;\n      } else if (ch === ',') {\n        fields.push(field);\n        field = '';\n        i++;\n      } else {\n        field += ch;\n        i++;\n      }\n    }\n  }\n\n  fields.push(field);\n  return fields;\n}\n",
+        "mounted": true,
+        "reason": "",
+        "results": [
+          {
+            "label": "基础三段",
+            "input": "a,b,c",
+            "expect": [
+              "a",
+              "b",
+              "c"
+            ],
+            "got": [
+              "a",
+              "b",
+              "c"
+            ],
+            "pass": true
+          },
+          {
+            "label": "引号内逗号",
+            "input": "\"a,b\",c",
+            "expect": [
+              "a,b",
+              "c"
+            ],
+            "got": [
+              "a,b",
+              "c"
+            ],
+            "pass": true
+          },
+          {
+            "label": "双写转义",
+            "input": "\"say \"\"hi\"\"\",x",
+            "expect": [
+              "say \"hi\"",
+              "x"
+            ],
+            "got": [
+              "say \"hi\"",
+              "x"
+            ],
+            "pass": true
+          },
+          {
+            "label": "空字段",
+            "input": "a,,b",
+            "expect": [
+              "a",
+              "",
+              "b"
+            ],
+            "got": [
+              "a",
+              "",
+              "b"
+            ],
+            "pass": true
+          },
+          {
+            "label": "单字段",
+            "input": "one",
+            "expect": [
+              "one"
+            ],
+            "got": [
+              "one"
+            ],
+            "pass": true
+          },
+          {
+            "label": "混合引号",
+            "input": "\"multi,tag\",ok,\"last\"",
+            "expect": [
+              "multi,tag",
+              "ok",
+              "last"
+            ],
+            "got": [
+              "multi,tag",
+              "ok",
+              "last"
+            ],
+            "pass": true
+          },
+          {
+            "label": "全空字段",
+            "input": ",,",
+            "expect": [
+              "",
+              "",
+              ""
+            ],
+            "got": [
+              "",
+              "",
+              ""
+            ],
+            "pass": true
+          }
+        ],
+        "passCount": 7
+      }
+    ],
+    "C": [
+      {
+        "run": 1,
+        "file": "runs/C_1.mjs",
+        "code": "python\ndef parse_csv_line(line):\n    fields = []\n    current = []\n    i = 0\n    n = len(line)\n    in_quotes = False\n    field_was_quoted = False\n\n    while i < n:\n        ch = line[i]\n\n        if in_quotes:\n            if ch == '\"':\n                # 检查是否是转义的双引号 \"\"\n                if i + 1 < n and line[i + 1] == '\"':\n                    current.append('\"')\n                    i += 2\n                    continue\n                else:\n                    # 结束引号\n                    in_quotes = False\n                    i += 1\n                    continue\n            else:\n                current.append(ch)\n                i += 1\n                continue\n        else:\n            if ch == '\"':\n                # 进入引号状态\n                in_quotes = True\n                field_was_quoted = True\n                i += 1\n                continue\n            elif ch == ',':\n                fields.append(''.join(current))\n                current = []\n                field_was_quoted = False\n                i += 1\n                continue\n            else:\n                current.append(ch)\n                i += 1\n                continue\n\n    fields.append(''.join(current))\n    return fields\n\n\n# 逐条跑验收用例\ntests = [\n    (\"a,b,c\", ['a','b','c']),\n    ('\"a,b\",c', ['a,b','c']),\n    ('\"say \"\"hi\"\"\",x', ['say \"hi\"','x']),\n    (\"a,,b\", ['a','','b']),\n    (\"one\", ['one']),\n    ('\"multi,tag\",ok,\"last\"', ['multi,tag','ok','last']),\n    (\",,\", ['','','']),\n]\n\nall_pass = True\nfor idx, (inp, expected) in enumerate(tests, 1):\n    got = parse_csv_line(inp)\n    ok = got == expected\n    all_pass = all_pass and ok\n    print(f\"#{idx} 输入={inp!r}\")\n    print(f\"   期望={expected}\")\n    print(f\"   实际={got}  -> {'PASS' if ok else 'FAIL'}\")\n\nprint()\nprint(\"全部通过\" if all_pass else \"存在失败用例\")\n",
+        "mounted": false,
+        "reason": "加载失败: Unexpected identifier 'parse_csv_line'",
+        "results": [],
+        "passCount": 0
+      }
+    ]
+  }
+}
